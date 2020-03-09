@@ -21,6 +21,7 @@ public class Request {
     private final String[] request;
 
     public Request(String[] request) {
+        if (request.length < 1) throw new IllegalArgumentException();
         this.request = request;
         for (String s : request) {
             if (s == null || s.length() == 0) throw new IllegalArgumentException("request arguments must not be empty");

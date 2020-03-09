@@ -19,10 +19,10 @@ import java.util.Set;
 public class Driver implements bank.BankDriver {
 
 	private final String DEFAULT_REMOTE_ADDRESS = "127.0.0.1";
-	private final int DEFAULT_REMOTE_PORT = 50001;
+	private final int DEFAULT_REMOTE_PORT = 5001;
 
 	private Bank bank = null;
-	private Socket socket = null;
+	Socket socket = null;
 
 	@Override
 	public void connect(String[] args) throws IOException {

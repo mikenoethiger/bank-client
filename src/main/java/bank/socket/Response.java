@@ -1,11 +1,10 @@
 package bank.socket;
 
-import java.net.Socket;
-
 public class Response {
 
     private static final String OK = "ok";
 
+    /* error codes according to protocol (see github.com/mikenoethiger/bank-server) */
     public static final int ERROR_INTERNAL_ERROR = 0;
     public static final int ERROR_ACCOUNT_DOES_NOT_EXIST = 1;
     public static final int ERROR_ACCOUNT_COULD_NOT_BE_CREATED = 2;
@@ -18,7 +17,6 @@ public class Response {
     private final String[] response;
 
     public Response(String[] response) {
-        if (response.length < 1) throw new IllegalArgumentException();
         this.response = response;
     }
 
