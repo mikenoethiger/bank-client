@@ -31,6 +31,24 @@ dependencies {
     implementation "org.openjfx:javafx-graphics:11:${platform}"
     implementation "org.openjfx:javafx-controls:11:${platform}"
     implementation "org.openjfx:javafx-swing:11:${platform}"
+    compile 'org.glassfish.jaxb:jaxb-core:2.3.0.1'
+
+    compile 'com.sun.xml.bind:jaxb-impl:2.3.1'
+
+    compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
+
+    // Jersey mapping for JDK Http Contaier
+    compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.30.1'
+
+    // HK2 InjectionManager implementation is an implementation of JSR-330 (Dependency Injection for Java)
+    // Was removed as a hard dependency from Jersey
+    compile 'org.glassfish.jersey.inject:jersey-hk2:2.30.1'
+
+    // MessageBodyWriter for media type application/json
+    compile 'org.glassfish.jersey.media:jersey-media-json-binding:2.30.1'
+
+    // JAXB and the new date/time api
+    compile 'io.github.threeten-jaxb:threeten-jaxb-core:1.2'
 }
 
 dependencies {
