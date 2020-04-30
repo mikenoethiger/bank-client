@@ -1,8 +1,15 @@
 package bank;
 
+import java.io.IOException;
 import java.util.Date;
 
-public class DefaultAccount implements Account {
+/**
+ * Server side Account implementation.
+ *
+ * Use it in your server implementations.
+ * (Or copy it to your server implementation code base.)
+ */
+public class ServerAccount implements Account {
 
     private static final String IBAN_PREFIX = "CH56";
     private static final Object LOCK = new Object();
@@ -15,7 +22,9 @@ public class DefaultAccount implements Account {
 
     private Date lastModified;
 
-    public DefaultAccount(String owner) {
+    public ServerAccount() {}
+
+    public ServerAccount(String owner) {
         this.owner = owner;
         synchronized (LOCK) {
             this.number = IBAN_PREFIX + next_account_number++;
@@ -45,7 +54,7 @@ public class DefaultAccount implements Account {
     }
 
     @Override
-    public void deposit(double amount) throws InactiveException {
+    public void deposit(double amount) throws IOException, InactiveException {
         if (!isActive()) throw new InactiveException();
         if (amount < 0) throw new IllegalArgumentException("negative amount not allowed");
         balance += amount;
@@ -53,7 +62,7 @@ public class DefaultAccount implements Account {
     }
 
     @Override
-    public void withdraw(double amount) throws InactiveException, OverdrawException {
+    public void withdraw(double amount) throws IOException, InactiveException, OverdrawException {
         if (amount < 0) throw new IllegalArgumentException("negative amount not allowed");
         if (amount > balance) throw new OverdrawException();
         if (!isActive()) throw new InactiveException();
@@ -71,4 +80,14 @@ public class DefaultAccount implements Account {
         lastModified = new Date();
     }
 
+    @Override
+    public String toString() {
+        return "ServerAccount{" +
+                "number='" + number + '\'' +
+                ", owner='" + owner + '\'' +
+                ", balance=" + balance +
+                ", active=" + active +
+                ", lastModified=" + lastModified +
+                '}';
+    }
 }

@@ -6,14 +6,14 @@
 package bank.local;
 
 import bank.Bank;
-import bank.DefaultBank;
+import bank.ServerBank;
 
 public class Driver implements bank.BankDriver {
 	private Bank bank = null;
 
 	@Override
 	public void connect(String[] args) {
-		bank = new DefaultBank();
+		bank = new ServerBank();
 		System.out.println("connected...");
 	}
 

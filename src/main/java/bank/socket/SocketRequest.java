@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Request {
+public class SocketRequest {
 
     private static final int ACTION_GET_ACCOUNT_NUMBERS = 1;
     private static final int ACTION_GET_ACCOUNT = 2;
@@ -20,7 +20,7 @@ public class Request {
 
     private final String[] request;
 
-    public Request(String[] request) {
+    public SocketRequest(String[] request) {
         if (request.length < 1) throw new IllegalArgumentException();
         this.request = request;
         for (String s : request) {
@@ -77,15 +77,15 @@ public class Request {
     }
 
     /**
-     * Encode request and write to socket.
-     * Encode means translating the request into protocol text.
+     * Encode socketRequest and write to socket.
+     * Encode means translating the socketRequest into protocol text.
      *
-     * @param request
+     * @param socketRequest
      * @return the socket response
      */
-    public static Response sendRequest(Request request, Socket socket) throws IOException {
-        // write request
-        writeString(socket.getOutputStream(), request.toString());
+    public static SocketResponse sendRequest(SocketRequest socketRequest, Socket socket) throws IOException {
+        // write socketRequest
+        writeString(socket.getOutputStream(), socketRequest.toString());
 
         // read response
         InputStream in = socket.getInputStream();
@@ -98,46 +98,46 @@ public class Request {
 
         String[] response_arr = new String[response.size()];
         response_arr = response.toArray(response_arr);
-        return new Response(response_arr);
+        return new SocketResponse(response_arr);
     }
 
-    public static class GetAccountNumbers extends Request {
+    public static class GetAccountNumbers extends SocketRequest {
         public GetAccountNumbers() {
             super(new String[]{String.valueOf(ACTION_GET_ACCOUNT_NUMBERS)});
         }
     }
 
-    public static class CreateAccount extends Request {
+    public static class CreateAccount extends SocketRequest {
         public CreateAccount(String owner) {
             super(new String[]{ String.valueOf(ACTION_CREATE_ACCOUNT), owner });
         }
     }
 
-    public static class CloseAccount extends Request {
+    public static class CloseAccount extends SocketRequest {
         public CloseAccount(String account) {
             super(new String[]{ String.valueOf(ACTION_CLOSE_ACCOUNT), account });
         }
     }
 
-    public static class GetAccount extends Request {
+    public static class GetAccount extends SocketRequest {
         public GetAccount(String account) {
             super(new String[]{ String.valueOf(ACTION_GET_ACCOUNT), account });
         }
     }
 
-    public static class Transfer extends Request {
+    public static class Transfer extends SocketRequest {
         public Transfer(String from_account, String to_account, double amount) {
             super(new String[]{ String.valueOf(ACTION_TRANSFER), from_account, to_account, String.valueOf(amount) });
         }
     }
 
-    public static class Deposit extends Request {
+    public static class Deposit extends SocketRequest {
         public Deposit(String account, double amount) {
             super(new String[]{ String.valueOf(ACTION_DEPOSIT), account, String.valueOf(amount) });
         }
     }
 
-    public static class Withdraw extends Request {
+    public static class Withdraw extends SocketRequest {
         public Withdraw(String account, double amount) {
             super(new String[]{ String.valueOf(ACTION_WITHDRAW), account, String.valueOf(amount) });
         }

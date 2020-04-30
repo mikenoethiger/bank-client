@@ -6,18 +6,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultBank implements Bank {
+/**
+ * Server side Bank implementation.
+ *
+ * Uses a HashMap to store accounts in memory.
+ * Use it in your server implementations.
+ * (Or copy it to your server implementation code base.)
+ */
+public class ServerBank implements Bank {
 
-    private final Map<String, DefaultAccount> accounts = new HashMap<>();
+    private final Map<String, ServerAccount> accounts = new HashMap<>();
 
     @Override
     public Set<String> getAccountNumbers() {
-        return accounts.values().stream().filter(DefaultAccount::isActive).map(DefaultAccount::getNumber).collect(Collectors.toSet());
+        return accounts.values().stream().filter(ServerAccount::isActive).map(ServerAccount::getNumber).collect(Collectors.toSet());
     }
 
     @Override
     public String createAccount(String owner) throws IOException {
-        DefaultAccount a = new DefaultAccount(owner);
+        ServerAccount a = new ServerAccount(owner);
         accounts.put(a.getNumber(), a);
         return a.getNumber();
     }
@@ -25,7 +32,7 @@ public class DefaultBank implements Bank {
     @Override
     public boolean closeAccount(String number) throws IOException {
         if (!accounts.containsKey(number)) return false;
-        DefaultAccount a = accounts.get(number);
+        ServerAccount a = accounts.get(number);
         if (!a.isActive()) return false;
         if (a.getBalance() > 0) return false;
         a.makeInactive();

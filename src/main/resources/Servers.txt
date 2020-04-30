@@ -1,3 +1,4 @@
 bank.local.Driver
-bank.socket.Driver localhost 5001
-bank.socket.Driver 178.128.198.205 5001
+bank.rest.RestBankDriver
+bank.socket.SocketBankDriver localhost 5001
+bank.graphql.GraphQLBankDriver localhost 5002

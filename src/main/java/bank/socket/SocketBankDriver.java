@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Driver implements bank.BankDriver {
+public class SocketBankDriver implements bank.BankDriver {
 
 	private final String DEFAULT_REMOTE_ADDRESS = "127.0.0.1";
 	private final int DEFAULT_REMOTE_PORT = 5001;
@@ -64,7 +64,7 @@ public class Driver implements bank.BankDriver {
 
 		@Override
 		public Set<String> getAccountNumbers() throws IOException {
-			String[] response = Request.sendRequest(new Request.GetAccountNumbers(), socket).array();
+			String[] response = SocketRequest.sendRequest(new SocketRequest.GetAccountNumbers(), socket).array();
 			Set<String> output = new HashSet<>();
 			for (int i = 1; i < response.length; i++) output.add(response[i]);
 			return output;
@@ -72,22 +72,22 @@ public class Driver implements bank.BankDriver {
 
 		@Override
 		public String createAccount(String owner) throws IOException {
-			Response response = Request.sendRequest(new Request.CreateAccount(owner), socket);
-			if (!response.isOK()) {
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.CreateAccount(owner), socket);
+			if (!socketResponse.isOK()) {
 				return null;
 			}
-			Account account = parseAccount(response.array(), socket);
+			Account account = parseAccount(socketResponse.array(), socket);
 			accounts_cache.put(account.getNumber(), account);
 			return account.getNumber();
 		}
 
 		@Override
 		public boolean closeAccount(String number) throws IOException {
-			Response response = Request.sendRequest(new Request.CloseAccount(number), socket);
-			if (response.isOK()) {
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.CloseAccount(number), socket);
+			if (socketResponse.isOK()) {
 				accounts_cache.get(number).active = false;
 			}
-			return response.isOK();
+			return socketResponse.isOK();
 		}
 
 		@Override
@@ -95,9 +95,9 @@ public class Driver implements bank.BankDriver {
 			if (number == null || number.length() == 0) return null;
 			if (accounts_cache.containsKey(number)) return accounts_cache.get(number);
 
-			Response response = Request.sendRequest(new Request.GetAccount(number), socket);
-			if (response.isOK()) {
-				String[] r = response.array();
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.GetAccount(number), socket);
+			if (socketResponse.isOK()) {
+				String[] r = socketResponse.array();
 				Account a = parseAccount(r, socket);
 				accounts_cache.put(number, a);
 				return a;
@@ -108,16 +108,16 @@ public class Driver implements bank.BankDriver {
 		@Override
 		public synchronized void transfer(bank.Account from, bank.Account to, double amount)
 				throws IOException, InactiveException, OverdrawException {
-			Response response = Request.sendRequest(new Request.Transfer(from.getNumber(), to.getNumber(), amount), socket);
-			if (response.isOK()) {
-				double balance_from = Double.parseDouble(response.array()[1]);
-				double balance_to = Double.parseDouble(response.array()[2]);
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.Transfer(from.getNumber(), to.getNumber(), amount), socket);
+			if (socketResponse.isOK()) {
+				double balance_from = Double.parseDouble(socketResponse.array()[1]);
+				double balance_to = Double.parseDouble(socketResponse.array()[2]);
 				((Account) from).setBalance(balance_from);
 				((Account) to).setBalance(balance_to);
-			} else if (response.getErrorCode() == Response.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
-			else if (response.getErrorCode() == Response.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
-			else if (response.getErrorCode() == Response.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
-			else throw new ServerException("" + response.getErrorCode() + " " + response.getErrorText());
+			} else if (socketResponse.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
+			else if (socketResponse.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
+			else if (socketResponse.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
+			else throw new ServerException("" + socketResponse.getStatusCode() + " " + socketResponse.getErrorText());
 		}
 
 		private static Account parseAccount(String[] r, Socket socket) {
@@ -167,25 +167,25 @@ public class Driver implements bank.BankDriver {
 
 		@Override
 		public void deposit(double amount) throws InactiveException, IOException {
-			Response response = Request.sendRequest(new Request.Deposit(getNumber(), amount), socket);
-			if (response.isOK()) {
-				double balance = Double.parseDouble(response.array()[1]);
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.Deposit(getNumber(), amount), socket);
+			if (socketResponse.isOK()) {
+				double balance = Double.parseDouble(socketResponse.array()[1]);
 				setBalance(balance);
-			} else if (response.getErrorCode() == Response.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
-			else if (response.getErrorCode() == Response.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
-			else throw new ServerException("" + response.getErrorCode() + " " + response.getErrorText());
+			} else if (socketResponse.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
+			else if (socketResponse.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
+			else throw new ServerException("" + socketResponse.getStatusCode() + " " + socketResponse.getErrorText());
 		}
 
 		@Override
 		public void withdraw(double amount) throws InactiveException, OverdrawException, IOException {
-			Response response = Request.sendRequest(new Request.Withdraw(getNumber(), amount), socket);
-			if (response.isOK()) {
-				double balance = Double.parseDouble(response.array()[1]);
+			SocketResponse socketResponse = SocketRequest.sendRequest(new SocketRequest.Withdraw(getNumber(), amount), socket);
+			if (socketResponse.isOK()) {
+				double balance = Double.parseDouble(socketResponse.array()[1]);
 				setBalance(balance);
-			} else if (response.getErrorCode() == Response.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
-			else if (response.getErrorCode() == Response.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
-			else if (response.getErrorCode() == Response.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
-			else throw new ServerException("" + response.getErrorCode() + " " + response.getErrorText());
+			} else if (socketResponse.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
+			else if (socketResponse.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
+			else if (socketResponse.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
+			else throw new ServerException("" + socketResponse.getStatusCode() + " " + socketResponse.getErrorText());
 		}
 	}
 }

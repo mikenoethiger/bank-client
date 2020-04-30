@@ -1,8 +1,8 @@
-package bank.rest;
+package bank.rest.server;
 
 import bank.Account;
 import bank.Bank;
-import bank.DefaultAccount;
+import bank.ServerAccount;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -34,6 +34,7 @@ public class BankResource {
     @POST
     @Produces("application/json")
     public Response createAccount(@FormParam("owner") String owner) throws IOException, URISyntaxException {
+        System.out.println(owner);
         String account = bank.createAccount(owner);
         return Response.created(new URI("/bank/accounts/" + account)).build();
     }
@@ -52,9 +53,12 @@ public class BankResource {
     @PUT
     @Path("{account}")
     public Response putSalod(@PathParam("account") String account, @FormParam("value") double value) throws IOException {
-        DefaultAccount a = (DefaultAccount) bank.getAccount(account);
+        ServerAccount a = (ServerAccount) bank.getAccount(account);
         if (a == null) {
             return Response.status(404, "Account not found.").build();
+        }
+        if (!a.isActive()) {
+            return Response.status(410, "Account closed.").build();
         }
         if (value < 0) {
             return Response.status(400, "Negative value not allowed.").build();
