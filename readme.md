@@ -9,4 +9,4 @@ Server side implementations can be found in the respective repos:
 * [bank-server-socket](https://github.com/mikenoethiger/bank-server-socket)
 * [bank-server-graphql](https://github.com/mikenoethiger/bank-server-graphql)
 
-Most implementations rely on the text protocol defined in the [socket implementation](https://github.com/mikenoethiger/bank-server-socket#protocol) and only vary in transportation.
+Most implementations rely on the [text protocol](https://github.com/mikenoethiger/bank-server-socket#protocol) defined in the socket implementation and only vary in transportation.
