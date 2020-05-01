@@ -131,6 +131,5 @@ public class MqBankDriver implements BankDriver2 {
 
         mqConnection.channel.basicCancel(ctag);
         return gson.fromJson(result, MqResponse.class);
-
     }
 }

@@ -49,7 +49,6 @@ public class MqBank implements Bank {
 
     @Override
     public Account getAccount(String accountNumber) throws IOException {
-        System.out.println("getAccount() called");
         MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT, new String[]{accountNumber}), mqConnection);
 
         if (!response.ok()) return null;
@@ -65,7 +64,6 @@ public class MqBank implements Bank {
         }
         accountsCache.put(accountNumber, acc);
 
-        System.out.println("Fetched account: " + acc);
         return acc;
     }
 
