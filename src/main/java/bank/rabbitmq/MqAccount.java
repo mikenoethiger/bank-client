@@ -11,15 +11,15 @@ import java.io.IOException;
 
 public class MqAccount extends ClientAccount {
 
-    private final ConnectionFactory factory;
+    private final MqConnection mqConnection;
 
-    public MqAccount(ConnectionFactory factory) {
-        this.factory = factory;
+    public MqAccount(MqConnection mqConnection) {
+        this.mqConnection = mqConnection;
     }
 
     @Override
     public void deposit(double amount) throws IOException, IllegalArgumentException, InactiveException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_DEPOSIT, new String[]{getNumber(), String.valueOf(amount)}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_DEPOSIT, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
@@ -30,7 +30,7 @@ public class MqAccount extends ClientAccount {
 
     @Override
     public void withdraw(double amount) throws IOException, IllegalArgumentException, OverdrawException, InactiveException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_WITHDRAW, new String[]{getNumber(), String.valueOf(amount)}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_WITHDRAW, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();

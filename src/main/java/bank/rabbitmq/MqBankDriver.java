@@ -4,16 +4,15 @@ import bank.Bank;
 import bank.BankDriver2;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeoutException;
 
 public class MqBankDriver implements BankDriver2 {
@@ -25,13 +24,16 @@ public class MqBankDriver implements BankDriver2 {
     private static final String DEFAULT_VIRTUAL_HOST = "/";
 
     private static final String RPC_QUEUE_NAME = "bank.requests";
+    static final String UPDATES_EXCHANGE_NAME = "bank.updates";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private Bank bank;
+    private MqConnection mqConnection;
+    private final List<UpdateHandler> updateHandlers = new CopyOnWriteArrayList<>();
 
     @Override
     public void registerUpdateHandler(UpdateHandler updateHandler) throws IOException {
-
+        updateHandlers.add(updateHandler);
     }
 
     @Override
@@ -47,12 +49,43 @@ public class MqBankDriver implements BankDriver2 {
         factory.setPassword(credentials[3]);
         factory.setVirtualHost(credentials[4]);
 
-        bank = new MqBank(factory);
+        /* connection and channel creation */
+        Connection connection;
+        try {
+            connection = factory.newConnection();
+        } catch (TimeoutException e) {
+            throw new IOException(e);
+        }
+        Channel channel = connection.createChannel();
+        final String corrId = UUID.randomUUID().toString();
+        this.mqConnection = new MqConnection(connection, channel, corrId);
+
+        /* subscribe to account updates */
+        channel.exchangeDeclare(UPDATES_EXCHANGE_NAME, "fanout");
+        String queueName = channel.queueDeclare().getQueue();
+        channel.queueBind(queueName, UPDATES_EXCHANGE_NAME, "");
+
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            System.out.println(" [x] Received '" + message + "'");
+            for (UpdateHandler updateHandler : updateHandlers) {
+                updateHandler.accountChanged(message);
+            }
+        };
+        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {	});
+
+        bank = new MqBank(mqConnection);
     }
 
     @Override
     public void disconnect() throws IOException {
         bank = null;
+        try {
+            mqConnection.channel.close();
+        } catch (TimeoutException e) {
+            throw new IOException(e);
+        }
+        mqConnection.connection.close();
     }
 
     @Override
@@ -60,48 +93,44 @@ public class MqBankDriver implements BankDriver2 {
         return bank;
     }
 
-    public static MqResponse sendRequest(MqRequest request, ConnectionFactory factory) throws IOException {
-        try (Connection connection = factory.newConnection();
-             Channel channel = connection.createChannel()) {
+    public static MqResponse sendRequest(MqRequest request, MqConnection mqConnection) throws IOException {
+        String replyQueueName = mqConnection.channel.queueDeclare().getQueue();
 
-            channel.queueDeclare(RPC_QUEUE_NAME,
-                    /* durable:    */ false,
-                    /* exclusive:  */ false,
-                    /* autoDelete: */ false,
-                    /* arguments:  */ null);
+        AMQP.BasicProperties props = new AMQP.BasicProperties
+                .Builder()
+                .correlationId(mqConnection.corrId)
+                .replyTo(replyQueueName)
+                .build();
 
-            final String corrId = UUID.randomUUID().toString();
+        String message = gson.toJson(request);
 
-            String replyQueueName = channel.queueDeclare().getQueue();
-            AMQP.BasicProperties props = new AMQP.BasicProperties
-                    .Builder()
-                    .correlationId(corrId)
-                    .replyTo(replyQueueName)
-                    .build();
-
-            String message = gson.toJson(request);
-
-            channel.basicPublish(
-                    /* exchange:    */ "",            // Exchange: empty string is called "default exchang" which is a direct exchange.
-                    /* routing key: */ RPC_QUEUE_NAME,
-                    /* props:       */ props,
-                    /* body:        */ message.getBytes(StandardCharsets.UTF_8));
+        mqConnection.channel.basicPublish(
+                /* exchange:    */ "",            // Exchange: empty string is called "default exchang" which is a direct exchange.
+                /* routing key: */ RPC_QUEUE_NAME,
+                /* props:       */ props,
+                /* body:        */ message.getBytes(StandardCharsets.UTF_8));
 
 
-            final BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(1);
+        final BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(1);
 
-            String ctag = channel.basicConsume(replyQueueName, true, (consumerTag, delivery) -> {
-                if (delivery.getProperties().getCorrelationId().equals(corrId)) {
-                    responseQueue.offer(new String(delivery.getBody(), "UTF-8"));
-                }
-            }, consumerTag -> {
-            });
+        String ctag = mqConnection.channel.basicConsume(replyQueueName, true, (consumerTag, delivery) -> {
+            if (delivery.getProperties().getCorrelationId().equals(props.getCorrelationId())) {
+                responseQueue.offer(new String(delivery.getBody(), "UTF-8"));
+            }
+        }, consumerTag -> {
+        });
 
-            String result = responseQueue.take();
-            channel.basicCancel(ctag);
-            return gson.fromJson(result, MqResponse.class);
-        } catch (TimeoutException | InterruptedException e) {
-            throw new IOException(e);
+        String result;
+        while (true) {
+            try {
+                result = responseQueue.take();
+                break;
+            } catch (InterruptedException e) {
+            }
         }
+
+        mqConnection.channel.basicCancel(ctag);
+        return gson.fromJson(result, MqResponse.class);
+
     }
 }

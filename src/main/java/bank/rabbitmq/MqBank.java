@@ -6,24 +6,23 @@ import bank.InactiveException;
 import bank.OverdrawException;
 import bank.socket.SocketRequest;
 import bank.socket.SocketResponse;
-import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
 import java.util.*;
 
 public class MqBank implements Bank {
 
-    private final ConnectionFactory factory;
+    private final MqConnection mqConnection;
     /* client side account cache to maintain consistency for multiple references to the same account */
     private final Map<String, MqAccount> accountsCache = new HashMap<>();
 
-    public MqBank(ConnectionFactory factory) {
-        this.factory = factory;
+    public MqBank(MqConnection mqConnection) {
+        this.mqConnection = mqConnection;
     }
 
     @Override
     public String createAccount(String owner) throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CREATE_ACCOUNT, new String[]{owner}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CREATE_ACCOUNT, new String[]{owner}), mqConnection);
 
         if (!response.ok()) return null;
 
@@ -35,13 +34,13 @@ public class MqBank implements Bank {
 
     @Override
     public boolean closeAccount(String accountNumber) throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CLOSE_ACCOUNT, new String[]{accountNumber}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CLOSE_ACCOUNT, new String[]{accountNumber}), mqConnection);
         return response.ok();
     }
 
     @Override
     public Set<String> getAccountNumbers() throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT_NUMBERS, new String[]{}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT_NUMBERS, new String[]{}), mqConnection);
 
         if (!response.ok()) return new HashSet<>();
 
@@ -50,14 +49,23 @@ public class MqBank implements Bank {
 
     @Override
     public Account getAccount(String accountNumber) throws IOException {
-        if (accountsCache.containsKey(accountNumber)) return accountsCache.get(accountNumber);
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT, new String[]{accountNumber}), factory);
+        System.out.println("getAccount() called");
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT, new String[]{accountNumber}), mqConnection);
 
         if (!response.ok()) return null;
 
         MqAccount acc = parseAccount(response.getData());
+        if (accountsCache.containsKey(accountNumber)) {
+            MqAccount cached = accountsCache.get(accountNumber);
+            cached.setNumber(acc.getNumber());
+            cached.setOwner(acc.getOwner());
+            cached.setActive(acc.isActive());
+            cached.setBalance(acc.getBalance());
+            acc = cached;
+        }
         accountsCache.put(accountNumber, acc);
 
+        System.out.println("Fetched account: " + acc);
         return acc;
     }
 
@@ -65,7 +73,7 @@ public class MqBank implements Bank {
     public void transfer(Account from, Account to, double amount) throws IOException, IllegalArgumentException, OverdrawException, InactiveException {
         if (!(from instanceof MqAccount) || !(to instanceof MqAccount)) throw new IllegalArgumentException("this method is only compatible with MqAccount instances");
 
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_TRANSFER, new String[]{from.getNumber(), to.getNumber(), String.valueOf(amount)}), factory);
+        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_TRANSFER, new String[]{from.getNumber(), to.getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
         else if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
@@ -76,7 +84,7 @@ public class MqBank implements Bank {
     }
 
     private MqAccount parseAccount(String[] accountData) {
-        MqAccount acc = new MqAccount(factory);
+        MqAccount acc = new MqAccount(mqConnection);
         acc.setNumber(accountData[0]);
         acc.setOwner(accountData[1]);
         acc.setBalance(Double.parseDouble(accountData[2]));
