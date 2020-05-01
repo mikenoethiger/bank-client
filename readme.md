@@ -4,7 +4,7 @@
 
 This project is part of a module exercise in distributed systems (Verteilte Systeme, vesys) at [FHNW](https://github.com/FHNW) (lecturer [Dominik Gruntz](https://github.com/dgruntz)).
 
-A minimal banking application is implemented using various technology. This project contains the client side implementations for each technology.
+A minimal banking application is implemented using various technologies. This project contains the client side implementations for each technology.
 
 Server side implementations can be found in the respective repos:
  
@@ -16,7 +16,7 @@ Most implementations rely on the [text protocol](https://github.com/mikenoethige
 
 # Run
 
-Launch `bank.BankLauncher` as Java Application and pick backend you wish to connect to in the launcher.
+Launch `bank.BankLauncher` as Java Application and pick the backend you wish to connect to in the launcher.
 
 Or with gradle:
 
