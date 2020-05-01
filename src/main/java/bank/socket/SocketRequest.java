@@ -10,13 +10,13 @@ import java.util.List;
 
 public class SocketRequest {
 
-    private static final int ACTION_GET_ACCOUNT_NUMBERS = 1;
-    private static final int ACTION_GET_ACCOUNT = 2;
-    private static final int ACTION_CREATE_ACCOUNT = 3;
-    private static final int ACTION_CLOSE_ACCOUNT = 4;
-    private static final int ACTION_TRANSFER = 5;
-    private static final int ACTION_DEPOSIT = 6;
-    private static final int ACTION_WITHDRAW = 7;
+    public static final int ACTION_GET_ACCOUNT_NUMBERS = 1;
+    public static final int ACTION_GET_ACCOUNT = 2;
+    public static final int ACTION_CREATE_ACCOUNT = 3;
+    public static final int ACTION_CLOSE_ACCOUNT = 4;
+    public static final int ACTION_TRANSFER = 5;
+    public static final int ACTION_DEPOSIT = 6;
+    public static final int ACTION_WITHDRAW = 7;
 
     private final String[] request;
 

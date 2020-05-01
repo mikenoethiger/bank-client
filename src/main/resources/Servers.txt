@@ -2,3 +2,4 @@ bank.local.Driver
 bank.rest.RestBankDriver
 bank.socket.SocketBankDriver localhost 5001
 bank.graphql.GraphQLBankDriver localhost 5002
+bank.rabbitmq.MqBankDriver localhost 5672 guest guest /

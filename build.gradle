@@ -65,6 +65,8 @@ dependencies {
     runtime 'com.graphql-java-kickstart:altair-spring-boot-starter:7.0.1'
 
     implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation 'com.rabbitmq:amqp-client:5.9.0'
 }
 
 dependencies {

@@ -2,7 +2,7 @@ package bank.socket;
 
 public class SocketResponse {
 
-    private static final int OK_STATUS_CODE = 0;
+    public static final int OK_STATUS_CODE = 0;
 
     /* error codes according to protocol (see github.com/mikenoethiger/bank-server) */
     public static final int ERROR_ACCOUNT_DOES_NOT_EXIST = 1;
