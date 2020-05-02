@@ -66,7 +66,12 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.8.6'
 
+    // RabbitMQ
     implementation 'com.rabbitmq:amqp-client:5.9.0'
+
+    // Websockets
+    implementation 'org.glassfish.tyrus:tyrus-client:1.16'
+    implementation 'org.glassfish.tyrus:tyrus-container-grizzly-server:1.16'
 }
 
 dependencies {
