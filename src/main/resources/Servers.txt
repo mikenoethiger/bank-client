@@ -1,4 +1,4 @@
-bank.local.Driver
+bank.local.LocalBankDriver
 bank.rest.RestBankDriver
 bank.socket.SocketBankDriver localhost 5001
 bank.websocket.WsBankDriver localhost 5003

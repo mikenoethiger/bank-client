@@ -2,6 +2,8 @@ package bank.rabbitmq;
 
 import bank.Bank;
 import bank.BankDriver2;
+import bank.protocol.Request;
+import bank.protocol.Response;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.rabbitmq.client.*;
@@ -93,7 +95,7 @@ public class MqBankDriver implements BankDriver2 {
         return bank;
     }
 
-    public static MqResponse sendRequest(MqRequest request, MqConnection mqConnection) throws IOException {
+    public static Response sendRequest(Request request, MqConnection mqConnection) throws IOException {
         String replyQueueName = mqConnection.channel.queueDeclare().getQueue();
 
         AMQP.BasicProperties props = new AMQP.BasicProperties
@@ -130,6 +132,6 @@ public class MqBankDriver implements BankDriver2 {
         }
 
         mqConnection.channel.basicCancel(ctag);
-        return gson.fromJson(result, MqResponse.class);
+        return gson.fromJson(result, Response.class);
     }
 }

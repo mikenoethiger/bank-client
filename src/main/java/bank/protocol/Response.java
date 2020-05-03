@@ -3,7 +3,7 @@ package bank.protocol;
 import java.util.Arrays;
 
 /**
- * Response according to https://github.com/mikenoethiger/bank-server-socket#response
+ * Response implementation according to https://github.com/mikenoethiger/bank-server-socket#response
  */
 public class Response {
 
@@ -35,14 +35,14 @@ public class Response {
         return data;
     }
 
-    public boolean ok() {
-        return getStatusCode() == STATUS_OK;
-    }
-
     public static Response fromString(String str) {
         String[] response = str.split("\n");
         String[] data = Arrays.copyOfRange(response, 1, response.length);
         return new Response(Integer.valueOf(response[0]), data);
+    }
+
+    public boolean ok() {
+        return getStatusCode() == STATUS_OK;
     }
 
     @Override

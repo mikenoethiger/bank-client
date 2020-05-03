@@ -1,7 +1,7 @@
 package bank.rest.server;
 
 import bank.Bank;
-import bank.ServerBank;
+import bank.protocol.InMemoryBank;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -11,7 +11,7 @@ import java.net.URI;
 public class RestServer extends Application {
 
     public static final String SERVER = "http://localhost:8080";
-    public static final Bank BANK = new ServerBank();
+    public static final Bank BANK = new InMemoryBank();
 
     public static void main(String[] args) throws Exception {
         URI baseUri = new URI(SERVER + "/");

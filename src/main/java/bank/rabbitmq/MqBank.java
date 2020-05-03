@@ -1,9 +1,9 @@
 package bank.rabbitmq;
 
-import bank.Account;
-import bank.Bank;
-import bank.InactiveException;
-import bank.OverdrawException;
+import bank.*;
+import bank.protocol.DefaultAccount;
+import bank.protocol.Request;
+import bank.protocol.Response;
 import bank.socket.SocketRequest;
 import bank.socket.SocketResponse;
 
@@ -22,7 +22,7 @@ public class MqBank implements Bank {
 
     @Override
     public String createAccount(String owner) throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CREATE_ACCOUNT, new String[]{owner}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_CREATE_ACCOUNT, new String[]{owner}), mqConnection);
 
         if (!response.ok()) return null;
 
@@ -34,13 +34,13 @@ public class MqBank implements Bank {
 
     @Override
     public boolean closeAccount(String accountNumber) throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_CLOSE_ACCOUNT, new String[]{accountNumber}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_CLOSE_ACCOUNT, new String[]{accountNumber}), mqConnection);
         return response.ok();
     }
 
     @Override
     public Set<String> getAccountNumbers() throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT_NUMBERS, new String[]{}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_GET_ACCOUNT_NUMBERS, new String[]{}), mqConnection);
 
         if (!response.ok()) return new HashSet<>();
 
@@ -49,7 +49,7 @@ public class MqBank implements Bank {
 
     @Override
     public Account getAccount(String accountNumber) throws IOException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_GET_ACCOUNT, new String[]{accountNumber}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_GET_ACCOUNT, new String[]{accountNumber}), mqConnection);
 
         if (!response.ok()) return null;
 
@@ -69,16 +69,16 @@ public class MqBank implements Bank {
 
     @Override
     public void transfer(Account from, Account to, double amount) throws IOException, IllegalArgumentException, OverdrawException, InactiveException {
-        if (!(from instanceof MqAccount) || !(to instanceof MqAccount)) throw new IllegalArgumentException("this method is only compatible with MqAccount instances");
+        if (!(from instanceof DefaultAccount) || !(to instanceof DefaultAccount)) throw new IllegalArgumentException("this method is only compatible with DefaultAccount instances");
 
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_TRANSFER, new String[]{from.getNumber(), to.getNumber(), String.valueOf(amount)}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_TRANSFER, new String[]{from.getNumber(), to.getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();
         else if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
 
-        ((MqAccount) from).setBalance(Double.valueOf(response.getData()[0]));
-        ((MqAccount) to).setBalance(Double.valueOf(response.getData()[1]));
+        ((DefaultAccount) from).setBalance(Double.valueOf(response.getData()[0]));
+        ((DefaultAccount) to).setBalance(Double.valueOf(response.getData()[1]));
     }
 
     private MqAccount parseAccount(String[] accountData) {

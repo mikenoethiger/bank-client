@@ -1,14 +1,14 @@
 package bank.websocket;
 
-import bank.ClientAccount;
 import bank.InactiveException;
 import bank.OverdrawException;
+import bank.protocol.DefaultAccount;
 import bank.protocol.Request;
 import bank.protocol.Response;
 
 import java.io.IOException;
 
-public class WsAccount extends ClientAccount {
+public class WsAccount extends DefaultAccount {
 
     private final WsConnection connection;
 

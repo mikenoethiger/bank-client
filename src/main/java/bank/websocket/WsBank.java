@@ -1,6 +1,7 @@
 package bank.websocket;
 
 import bank.*;
+import bank.protocol.DefaultAccount;
 import bank.protocol.Request;
 import bank.protocol.Response;
 
@@ -71,7 +72,7 @@ public class WsBank implements Bank {
     public void transfer(Account from, Account to, double amount) throws IOException, IllegalArgumentException, OverdrawException, InactiveException {
         Response response = connection.sendRequestSynchronous(new Request(Request.ACTION_TRANSFER, new String[]{from.getNumber(), to.getNumber(), String.valueOf(amount)}));
 
-        if (!(from instanceof ClientAccount) || !(to instanceof ClientAccount)) throw new IllegalArgumentException("this method is only compatible with ClientAccount instances");
+        if (!(from instanceof DefaultAccount) || !(to instanceof DefaultAccount)) throw new IllegalArgumentException("this method is only compatible with DefaultAccount instances");
 
         if (response.getStatusCode() == Response.ERROR_ACCOUNT_OVERDRAW.statusCode) throw new OverdrawException();
         else if (response.getStatusCode() == Response.ERROR_INACTIVE_ACCOUNT.statusCode) throw new InactiveException();
@@ -79,7 +80,7 @@ public class WsBank implements Bank {
 
         if (!response.ok()) if (!response.ok()) throw new IOException("Remote Error: " + response.getData()[0]);
 
-        ((ClientAccount) from).setBalance(Double.valueOf(response.getData()[0]));
-        ((ClientAccount) to).setBalance(Double.valueOf(response.getData()[1]));
+        ((DefaultAccount) from).setBalance(Double.valueOf(response.getData()[0]));
+        ((DefaultAccount) to).setBalance(Double.valueOf(response.getData()[1]));
     }
 }

@@ -1,15 +1,16 @@
 package bank.rabbitmq;
 
-import bank.ClientAccount;
 import bank.InactiveException;
 import bank.OverdrawException;
+import bank.protocol.DefaultAccount;
+import bank.protocol.Request;
+import bank.protocol.Response;
 import bank.socket.SocketRequest;
 import bank.socket.SocketResponse;
-import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
 
-public class MqAccount extends ClientAccount {
+public class MqAccount extends DefaultAccount {
 
     private final MqConnection mqConnection;
 
@@ -19,7 +20,7 @@ public class MqAccount extends ClientAccount {
 
     @Override
     public void deposit(double amount) throws IOException, IllegalArgumentException, InactiveException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_DEPOSIT, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_DEPOSIT, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
@@ -30,7 +31,7 @@ public class MqAccount extends ClientAccount {
 
     @Override
     public void withdraw(double amount) throws IOException, IllegalArgumentException, OverdrawException, InactiveException {
-        MqResponse response = MqBankDriver.sendRequest(new MqRequest(SocketRequest.ACTION_WITHDRAW, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
+        Response response = MqBankDriver.sendRequest(new Request(SocketRequest.ACTION_WITHDRAW, new String[]{getNumber(), String.valueOf(amount)}), mqConnection);
 
         if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ACCOUNT_OVERDRAW) throw new OverdrawException();

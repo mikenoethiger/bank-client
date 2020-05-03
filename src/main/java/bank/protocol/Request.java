@@ -4,7 +4,7 @@ package bank.protocol;
 import java.util.Arrays;
 
 /**
- * Request according to https://github.com/mikenoethiger/bank-server-socket#request
+ * Request implementation according to https://github.com/mikenoethiger/bank-server-socket#request
  */
 public class Request {
 

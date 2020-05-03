@@ -1,8 +1,8 @@
 package bank.graphql;
 
-import bank.ClientAccount;
 import bank.InactiveException;
 import bank.OverdrawException;
+import bank.protocol.DefaultAccount;
 import bank.socket.SocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 
 import java.io.IOException;
 
-public class GraphQLAccount extends ClientAccount {
+public class GraphQLAccount extends DefaultAccount {
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

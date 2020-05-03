@@ -2,7 +2,7 @@ package bank.rest.server;
 
 import bank.Account;
 import bank.Bank;
-import bank.ServerAccount;
+import bank.protocol.DefaultAccount;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -53,7 +53,7 @@ public class BankResource {
     @PUT
     @Path("{account}")
     public Response putSalod(@PathParam("account") String account, @FormParam("value") double value) throws IOException {
-        ServerAccount a = (ServerAccount) bank.getAccount(account);
+        DefaultAccount a = (DefaultAccount) bank.getAccount(account);
         if (a == null) {
             return Response.status(404, "Account not found.").build();
         }

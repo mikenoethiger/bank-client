@@ -1,8 +1,8 @@
 package bank.rest.client;
 
-import bank.ServerAccount;
 import bank.InactiveException;
 import bank.OverdrawException;
+import bank.protocol.DefaultAccount;
 import bank.rest.server.RestServer;
 
 import java.io.IOException;
@@ -12,13 +12,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-public class RestAccount extends ServerAccount {
+public class RestAccount extends DefaultAccount {
 
     public RestAccount() { }
-
-    public RestAccount(String owner) {
-        super(owner);
-    }
 
     private boolean updateBalance(double oldBalance, double newBalance) throws IOException, InactiveException, OverdrawException {
         HttpClient client = HttpClient.newBuilder()
