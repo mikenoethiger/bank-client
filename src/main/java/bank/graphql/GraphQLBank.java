@@ -17,6 +17,8 @@ public class GraphQLBank implements Bank {
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     /* client side account cache to maintain consistency for multiple references to the same account */
+    // XXX Problem: Die Einträge werden nie mehr gelöscht. Da müsste man etwas a la WeakHashMap, bei der 
+    //     Einträge automatisch gelöscht werden wenn der Key nicht mehr referenziert wird.
     private final Map<String, GraphQLAccount> accountsCache = new HashMap<>();
 
     @Override
@@ -56,10 +58,14 @@ public class GraphQLBank implements Bank {
         }
 
         GraphQLAccount acc = new GraphQLAccount();
+        // XXX im Gegensatz zu getAccount wo das Konto über JSON deserialisiert wird greifen Sie hier auf die '
+        //     Daten der Antwort zu. Sie könnten hier auch einfach die nummer zurückgeben, dann würde das
+        //     Account-objekt beim nächsten getAccount erzeugt.
         acc.setNumber(response.getData()[0]);
         acc.setOwner(response.getData()[1]);
         acc.setBalance(Double.valueOf(response.getData()[2]));
         acc.setActive(Boolean.valueOf(response.getData()[3]));
+        // XXX Wird active nicht als 0 oder 1 übertragen? Ich hätte gesagt, dass das active-Flag hier falsch gesetzt ist.
         accountsCache.put(acc.getNumber(), acc);
 
         return response.getData()[0];

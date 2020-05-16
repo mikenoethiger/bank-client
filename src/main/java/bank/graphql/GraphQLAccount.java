@@ -12,6 +12,11 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 
 public class GraphQLAccount extends DefaultAccount {
+	// XXX diese Erweiterung von DefaultAccount macht nur bedingt Sinn. Das einzige was sie wiederverwenden können sind die MEthoden
+	//     - getNumber
+	//     - getOwner
+	//     aber die restlichen Methoden müssen jeweils auf dem Server abgefragt werden. Das ist bei Ihnen nicht der Fall, daher 
+	//     zeigt das GUI nicht die aktuellsten Daten an. Ich demonstriere dies in einem kurzen Screencast den ich ihnen zukommen lasse. 
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

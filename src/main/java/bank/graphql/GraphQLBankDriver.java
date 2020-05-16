@@ -20,6 +20,7 @@ public class GraphQLBankDriver implements BankDriver {
     private static final String DEFAULT_HOST = "localhost";
     private static final int    DEFAULT_PORT = 5002;
 
+    // XXX warum sind die folgenden Felder alle statisch deklariert?
     private static HttpClient client;
     private static String host;
     private static int port;
@@ -27,6 +28,8 @@ public class GraphQLBankDriver implements BankDriver {
 
     @Override
     public void connect(String[] args) throws IOException {
+    	// XXX anstelle von host/port könnten sie auch direkt die URI speichern, denn GraphQL verwendet ja immer dieselbe URI.
+    	
         if (args.length > 1) {
             host = args[0];
             port = Integer.valueOf(args[1]);
