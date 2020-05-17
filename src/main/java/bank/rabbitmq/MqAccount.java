@@ -26,6 +26,7 @@ public class MqAccount extends DefaultAccount {
         else if (response.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
         else if (response.getStatusCode() != SocketResponse.OK_STATUS_CODE) throw new IOException(response.getData()[0]);
 
+        // XXX das wäre nicht mehr nötig, denn als Nebeneffekt der Änderung gibt es eine Notifikation
         setBalance(getBalance() + amount);
     }
 

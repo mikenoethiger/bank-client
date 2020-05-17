@@ -26,7 +26,7 @@ public class MqBankDriver implements BankDriver2 {
     private static final String DEFAULT_VIRTUAL_HOST = "/";
 
     private static final String RPC_QUEUE_NAME = "bank.requests";
-    static final String UPDATES_EXCHANGE_NAME = "bank.updates";
+    static final String UPDATES_EXCHANGE_NAME = "bank.updates";	// XXX würde ich auch noch als private deklarieren.
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private Bank bank;
@@ -70,9 +70,27 @@ public class MqBankDriver implements BankDriver2 {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
             System.out.println(" [x] Received '" + message + "'");
-            for (UpdateHandler updateHandler : updateHandlers) {
-                updateHandler.accountChanged(message);
-            }
+            
+            // XXX der folgende fix sollte eigentlich ihr Problem lösen, d.h. die Idee ist, dass bei jeder Änderung mit getAccount die Daten aktualisiert werden.
+            //     Aber der fix funktioniert nicht. Ich vermute, dass man innerhalb einer Notifikation nicht bereits Anfragen an die Queue schicken darf.
+            // bank.getAccount(message);
+            // Wenn ich es jedoch in einen eigenen Thread auslagere, dann geht es, d.h. die Lösung die ich in dieser Version habe funktioneirt.
+            // Bei jeder Notifikation wird der Cache (mit HIlfe von getAccount) aktualisiert. Und auch erst danach wird der updateHandler aufgerufen.
+            
+//            for (UpdateHandler updateHandler : updateHandlers) {
+//                updateHandler.accountChanged(message);
+//            }
+            
+            new Thread(() ->  {
+            	try {
+					bank.getAccount(message);
+	                for (UpdateHandler updateHandler : updateHandlers) {
+	                    updateHandler.accountChanged(message);
+	                }
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+            }).start();
         };
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {	});
 

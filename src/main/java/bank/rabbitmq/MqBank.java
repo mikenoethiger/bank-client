@@ -14,6 +14,8 @@ public class MqBank implements Bank {
 
     private final MqConnection mqConnection;
     /* client side account cache to maintain consistency for multiple references to the same account */
+    // XXX hier dieselbe Bemerkung wie bei GraphQL: Sollte eine WeakHashMap sein, sonst werden auf alle Zeiten (also solange der CLient läuft
+    //     alle Kontis gecacht, auch wenn es gar keine Nutzer mehr gibt!
     private final Map<String, MqAccount> accountsCache = new HashMap<>();
 
     public MqBank(MqConnection mqConnection) {
@@ -77,6 +79,7 @@ public class MqBank implements Bank {
         else if (response.getStatusCode() == SocketResponse.ERROR_INACTIVE_ACCOUNT) throw new InactiveException();
         else if (response.getStatusCode() == SocketResponse.ERROR_ILLEGAL_ARGUMENT) throw new IllegalArgumentException();
 
+        // XXX das wäre nicht mehr nötig, denn für diese beiden Kontis gibt es ja eine Notifikation, und in dieser kann der Saldo angepasst werden.
         ((DefaultAccount) from).setBalance(Double.valueOf(response.getData()[0]));
         ((DefaultAccount) to).setBalance(Double.valueOf(response.getData()[1]));
     }
