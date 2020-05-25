@@ -59,7 +59,7 @@ public class GraphQLBank implements Bank {
         acc.setNumber(response.getData()[0]);
         acc.setOwner(response.getData()[1]);
         acc.setBalance(Double.valueOf(response.getData()[2]));
-        acc.setActive(Boolean.valueOf(response.getData()[3]));
+        acc.setActive(Integer.valueOf(response.getData()[3]) != 0);
         accountsCache.put(acc.getNumber(), acc);
 
         return response.getData()[0];

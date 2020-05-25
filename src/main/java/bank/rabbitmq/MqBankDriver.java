@@ -70,9 +70,17 @@ public class MqBankDriver implements BankDriver2 {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
             System.out.println(" [x] Received '" + message + "'");
-            for (UpdateHandler updateHandler : updateHandlers) {
-                updateHandler.accountChanged(message);
-            }
+
+            new Thread(() ->  {
+            	try {
+					bank.getAccount(message);
+	                for (UpdateHandler updateHandler : updateHandlers) {
+	                    updateHandler.accountChanged(message);
+	                }
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+            }).start();
         };
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {	});
 

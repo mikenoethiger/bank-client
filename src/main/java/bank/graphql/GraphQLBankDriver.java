@@ -36,8 +36,8 @@ public class GraphQLBankDriver implements BankDriver {
             host = DEFAULT_HOST;
             port = DEFAULT_PORT;
         }
-        this.client = HttpClient.newHttpClient();
-        this.bank = new GraphQLBank();
+        client = HttpClient.newHttpClient();
+        bank = new GraphQLBank();
     }
 
     @Override
